@@ -30,6 +30,7 @@
 <div id="info-panel">
     <h3>Informacje o jaskini</h3>
     <input type="text" id="search-input" placeholder="Wyszukaj jaskinię po nazwie..." />
+    <input type="number" id="length-filter" placeholder="Min. długość (m)" />
     <div id="cave-details">Kliknij na punkt na mapie, aby zobaczyć szczegółowe informacje.</div>
 </div>
 
@@ -279,11 +280,18 @@
 
     function filterMarkers(searchText) {
         const lowerText = searchText.toLowerCase();
+        const minLength = parseFloat(document.getElementById('length-filter').value) || 0;
         let anyVisible = false;
 
         markers.forEach(marker => {
             const name = marker.caveData.NAZWA.toLowerCase();
-            if (name.includes(lowerText)) {
+            const lengthStr = marker.caveData.DLUGOSC.replace(',', '.');
+            const caveLength = parseFloat(lengthStr);
+
+            const nameMatch = name.includes(lowerText);
+            const lengthMatch = !isNaN(caveLength) && caveLength >= minLength;
+
+            if (nameMatch && lengthMatch) {
                 if (!map.hasLayer(marker)) marker.addTo(map);
                 anyVisible = true;
             } else {
@@ -295,6 +303,7 @@
             document.getElementById('cave-details').innerHTML = 'Brak wyników wyszukiwania.';
         }
     }
+
 
     function init() {
         map = L.map('map').setView([50.3, 19.0], 7);
@@ -316,6 +325,12 @@
             const val = e.target.value;
             filterMarkers(val);
         });
+        const lengthInput = document.getElementById('length-filter');
+        lengthInput.addEventListener('input', () => {
+            const val = document.getElementById('search-input').value;
+            filterMarkers(val);
+        });
+
     }
 
     window.onload = init;
